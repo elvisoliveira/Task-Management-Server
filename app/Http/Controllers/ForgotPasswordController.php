@@ -78,8 +78,8 @@ class ForgotPasswordController extends Controller
         $token = $this->jwt($user);
         $link = 'http://localhost:3000/forgot_password_token/'.$token;
 
-        $mail = new ForgotPasswordMail($link); 
-        dispatch(new SendMail($email, $mail));     
+        $mail = new ForgotPasswordMail($link);
+        dispatch(new SendMail($email, $mail));
 
         return response()->json(['message'=>'The reset password link has been sent to your email id'], 200);
     }
@@ -94,8 +94,6 @@ class ForgotPasswordController extends Controller
             'exp' => time() + env('EXPIRATION_TIME')     // Expiration time
         ];
         
-        // As you can see we are passing `JWT_SECRET` as the second parameter that will
-        // be used to decode the token in the future.
         return JWT::encode($payload, env('JWT_SECRET'));
     }
 

@@ -5,8 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-// use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
-// use Symfony\Component\HttpFoundation\Cookie;
 use App\Task;
 use App\User;
 use Illuminate\Validation\ValidationException;
@@ -116,7 +114,6 @@ class TaskController extends Controller
     /** This will update the task details. */
     public function update(Request $request)
     {
-        // should we have different update function for every type of update so that we can skip updating other things.
         $current_user = Auth::user();
         $rules = [
             'task_id' => 'bail|required|integer|exists:tasks,id',
@@ -144,7 +141,7 @@ class TaskController extends Controller
             $updated_at = $today;
         }
 
-        if($due_date <= $updated_at){
+        if ($due_date <= $updated_at) {
             return response()->json(['message' => 'Sorry, please give the user some time to complete the task.'], 422);
         }
         $title =  $request->input('title');
@@ -164,14 +161,13 @@ class TaskController extends Controller
     {
         $current_user = Auth::user();
         $rules = [
-            'task_id' => 'bail|required|integer',
+            'task_id' => 'bail|required|integer|exists:tasks,id',
         ];
         $this->validate($request, $rules);
         $task_id = $request->input('task_id');
-        $task = Task::where('id', $task_id)->first();
+        $task = Task::find($task_id);
 
-        // Check whether task exists or not, or task assigner is same as current user
-        if (!$task  || $task->deleted_at || $task->assigned_by !== $current_user->id) {
+        if ($task->deleted_at || $task->assigned_by !== $current_user->id) {
             return response()->json(['message'=>'Task does not exist'], 404);
         }
         $task->status = 'deleted';
@@ -190,7 +186,7 @@ class TaskController extends Controller
     {
         $current_user = Auth::user();
         $rules = [
-            'task_id' => 'bail|required|integer',
+            'task_id' => 'bail|required|integer|exists:tasks,id',
             'status' => ['bail','required', Rule::in(['in-progress','completed'])]
         ];
         $custom_messages = [
@@ -201,22 +197,18 @@ class TaskController extends Controller
         $task_id = $request->input('task_id');
         $task = Task::find($task_id);
 
-        // Check whether task exists or not
-        if (!$task  || $task->deleted_at) {
+        if ($task->deleted_at) {
             return response()->json(['message'=>'Task does not exist'], 404);
         }
 
-        // Check whether assigner is same as current user but has not been given to himself.
         if ($task->assigned_by === $current_user->id && $task->assigned_to !== $current_user->id) {
             return response()->json(['message'=>'Only assignee can update the task status'], 403);
         }
 
-        // Check whether assignee is same as current user
         if ($task->assigned_to !== $current_user->id) {
             return response()->json(['message'=>'Task does not exist'], 404);
         }
 
-        // Check if status already completed or not
         if ($task->status === 'completed') {
             return response()->json(['message'=>'Task already completed'], 403);
         }
@@ -292,11 +284,6 @@ class TaskController extends Controller
                 $query->where('id', $filter_assigned_by);
             }
         });
-
-        // $query->whereHas('assigned_to', function($query) use($current_user){
-        //     $query->where('id', '!=', 'assigned_by.id')
-        //             ->orWhere('assigned_by.id', $current_user->id);
-        // });
 
         if ($filter_status !== 'deleted') {
             $query->whereNull('deleted_at');

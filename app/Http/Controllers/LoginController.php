@@ -13,23 +13,18 @@ class LoginController extends Controller
 {
     public function __construct()
     {
-        // $this->middleware('auth', ['only'=>[
-        //     'logout'
-        // ]]);
     }
 
     protected function jwt(User $user)
     {
         $payload = [
-            'iss' => "welcome", // Issuer of the token
-            'usr' => $user->id, // Subject of the token
+            'iss' => "welcome",
+            'usr' => $user->id,
             'typ' => 'login',
-            'iat' => time(), // Time when JWT was issued.
-            'exp' => time() + env('EXPIRATION_TIME') // Expiration time
+            'iat' => time(),
+            'exp' => time() + env('EXPIRATION_TIME')
         ];
         
-        // As you can see we are passing `JWT_SECRET` as the second parameter that will
-        // be used to decode the token in the future.
         return JWT::encode($payload, env('JWT_SECRET'));
     }
 
@@ -52,31 +47,28 @@ class LoginController extends Controller
         $email = $request->input('email');
 
         $user = User::where('email', $email)->first();
-        // Validation 1:
         if (!$user) {
             return response()->json(['message'=>'The user does not exist.'], 401);
         }
         if ($user->deleted_at) {
             return response()->json(['message'=>'User has been deleted'], 401);
         }
-        // Validation 2:
         if (!Hash::check($request->input('password'), $user->password)) {
             return response()->json(['message'=>'Email or Password did not match.'], 401);
         }
-        // $assignedTasks = User::find($user->id)->assignedTasks()->where('title','like','%%')->get();
         $token = $this->jwt($user);
-        $cookie1 = new Cookie('token', $token, strtotime('now + 60 minutes'),'/','',false, false);
-        $cookie2 = new Cookie('user_id', $user->id, strtotime('now + 60 minutes'),'/','',false, false);
-        $cookie3 = new Cookie('role', $user->role, strtotime('now + 60 minutes'),'/','',false, false);
-        $cookie4 = new Cookie('loggedIn', 'true', strtotime('now + 60 minutes'),'/','',false, false);
+        $cookie1 = new Cookie('token', $token, strtotime('now + 60 minutes'), '/', '', false, false);
+        $cookie2 = new Cookie('user_id', $user->id, strtotime('now + 60 minutes'), '/', '', false, false);
+        $cookie3 = new Cookie('role', $user->role, strtotime('now + 60 minutes'), '/', '', false, false);
+        $cookie4 = new Cookie('loggedIn', 'true', strtotime('now + 60 minutes'), '/', '', false, false);
         return response()->json(['message' => 'Successful Login!'], 200)->cookie($cookie1)->cookie($cookie2)->cookie($cookie3)->cookie($cookie4);
     }
     public function logout(Request $request)
     {
-        $cookie1 = new Cookie('token', '', strtotime('now + 60 minutes'),'/','',false, false);
-        $cookie2 = new Cookie('user_id', '', strtotime('now + 60 minutes'),'/','',false, false);
-        $cookie3 = new Cookie('role', '', strtotime('now + 60 minutes'),'/','',false, false);
-        $cookie4 = new Cookie('loggedIn', 'false', strtotime('now + 60 minutes'),'/','',false, false);
+        $cookie1 = new Cookie('token', '', strtotime('now + 60 minutes'), '/', '', false, false);
+        $cookie2 = new Cookie('user_id', '', strtotime('now + 60 minutes'), '/', '', false, false);
+        $cookie3 = new Cookie('role', '', strtotime('now + 60 minutes'), '/', '', false, false);
+        $cookie4 = new Cookie('loggedIn', 'false', strtotime('now + 60 minutes'), '/', '', false, false);
         return response()->json(['message' => 'Successful Logout!'], 200)->cookie($cookie1)->cookie($cookie2)->cookie($cookie3)->cookie($cookie4);
     }
     public function test()
