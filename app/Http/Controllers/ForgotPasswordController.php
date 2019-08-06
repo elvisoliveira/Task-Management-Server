@@ -79,7 +79,7 @@ class ForgotPasswordController extends Controller
         $link = 'http://localhost:3000/forgot_password_token/'.$token;
 
         $mail = new ForgotPasswordMail($link);
-        dispatch(new SendMail($email, $mail));
+        $this->dispatch(new SendMail($email, $mail));
 
         return response()->json(['message'=>'The reset password link has been sent to your email id'], 200);
     }

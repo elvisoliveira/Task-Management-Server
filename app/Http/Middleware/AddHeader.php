@@ -16,7 +16,7 @@ class AddHeader
     public function handle($request, Closure $next)
     {
         $response = $next($request);
-        $response->header('Access-Control-Allow-Headers', 'Origin, Content-Type, Content-Range, Content-Disposition, Content-Description, X-Auth-Token,Authorization');
+        $response->header('Access-Control-Allow-Headers', 'Origin, Content-Type, Content-Range, Content-Disposition, Content-Description, X-Auth-Token,Authorization,x-xsrf-token');
         $response->header('Access-Control-Allow-Credentials', 'true');
         $response->header('Access-Control-Allow-Origin', 'http://localhost:3000');
         $response->header('Access-Control-Allow-Methods', 'GET', 'POST');
